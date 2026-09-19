@@ -1,0 +1,48 @@
+name: Destroy infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type 'destroy' to confirm teardown"
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  destroy:
+    name: Terraform destroy
+    runs-on: ubuntu-latest
+    if: inputs.confirm == 'destroy'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.9.0'
+
+      - name: Terraform init
+        working-directory: infrastructure/terraform
+        run: terraform init
+
+      - name: Empty S3 bucket before destroy (Terraform cannot delete non-empty buckets)
+        working-directory: infrastructure/terraform
+        run: |
+          BUCKET=$(terraform output -raw frontend_bucket 2>/dev/null || true)
+          if [ -n "$BUCKET" ]; then
+            aws s3 rm "s3://$BUCKET" --recursive
+          fi
+
+      - name: Terraform destroy
+        working-directory: infrastructure/terraform
+        run: terraform destroy -auto-approve

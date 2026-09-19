@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -12,10 +13,10 @@ export class AppComponent {
   message = '';
 
   async loadMessage(): Promise<void> {
-    const frontendProxyUrl = 'http://localhost:4200/api/frontend-message';
+    const url = `${environment.backendUrl}/api/hello`;
 
     try {
-      const response = await fetch(frontendProxyUrl);
+      const response = await fetch(url);
       const data = await response.json();
       this.message = data.message ?? 'No message returned';
     } catch (error) {

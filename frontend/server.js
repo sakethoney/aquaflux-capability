@@ -7,11 +7,17 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
 
 app.use(express.json());
 
-app.get('/api/frontend-message', async (req, res) => {
+// Proxy all /api/* to the backend — mirrors the CloudFront /api/* behaviour in production
+app.all('/api/{*path}', async (req, res) => {
+  const targetUrl = `${BACKEND_URL}${req.path}${req.url.includes('?') ? '?' + req.url.split('?')[1] : ''}`;
   try {
-    const response = await fetch(`${BACKEND_URL}/api/hello`);
+    const response = await fetch(targetUrl, {
+      method: req.method,
+      headers: { 'content-type': req.headers['content-type'] || 'application/json' },
+      body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
+    });
     const data = await response.json();
-    res.json({ message: data.message || 'No backend message returned' });
+    res.status(response.status).json(data);
   } catch (error) {
     res.status(502).json({ message: 'Unable to reach backend service', error: String(error) });
   }
