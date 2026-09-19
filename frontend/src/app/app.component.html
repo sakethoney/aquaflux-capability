@@ -1,0 +1,18 @@
+<main class="container">
+  <section class="card">
+    <p class="eyebrow">AquaFlux Capability Demo</p>
+    <h1>Hello from Angular</h1>
+    <p class="subtitle">Calling the Spring Boot backend service through the Node.js layer.</p>
+
+    <button (click)="loadMessage()">Get backend message</button>
+
+    <div class="response" *ngIf="message; else idle">
+      <strong>Response:</strong>
+      <span>{{ message }}</span>
+    </div>
+
+    <ng-template #idle>
+      <div class="response idle">No request yet.</div>
+    </ng-template>
+  </section>
+</main>

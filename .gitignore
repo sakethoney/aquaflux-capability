@@ -1,0 +1,7 @@
+.vscode/
+**/node_modules/
+**/dist/
+**/target/
+**/.angular/
+**/.idea/
+.DS_Store
